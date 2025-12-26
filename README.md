@@ -10,9 +10,10 @@ This project demonstrates a well-structured, OOP-based approach to building mach
 
 **What it does:**
 - Loads and processes CSV datasets
+- Applies data preprocessing (StandardScaler, Normalizer)
 - Trains multiple regression models (Linear Regression, Decision Tree)
 - Evaluates model performance using Mean Squared Error (MSE)
-- Provides a clean, extensible architecture for adding new models
+- Provides a clean, extensible architecture for adding new models and preprocessors
 
 **Why it matters:**
 - **Modularity**: Easy to add new models by extending the `BaseModel` class
@@ -60,8 +61,10 @@ python main.py
 
 This will:
 1. Load the sample dataset from `ml_oop_pipeline/data/sample_data.csv`
-2. Train a Linear Regression model and display its MSE
-3. Train a Decision Tree model and display its MSE
+2. Train models without preprocessing
+3. Train models with StandardScaler preprocessing
+4. Train models with Normalizer preprocessing
+5. Display MSE for each configuration
 
 ## 📊 Example Usage
 
@@ -91,6 +94,36 @@ predictions = model.predict(X)
 print("MSE:", mse(y, predictions))
 ```
 
+### Using Preprocessing
+
+Apply preprocessing to your data before training:
+
+```python
+from ml_oop_pipeline.datasets.dataset import Dataset
+from ml_oop_pipeline.models.linear_regression_model import LinearRegressionModel
+from ml_oop_pipeline.preprocessors.standard_scaler import StandardScaler
+from ml_oop_pipeline.utils.metrics import mse
+
+# Load dataset
+dataset = Dataset("ml_oop_pipeline/data/sample_data.csv")
+data = dataset.load()
+
+X = data[['feature']]
+y = data['target']
+
+# Apply preprocessing
+preprocessor = StandardScaler()
+X_scaled = preprocessor.fit_transform(X)
+
+# Train model
+model = LinearRegressionModel()
+model.train(X_scaled, y)
+
+# Make predictions
+predictions = model.predict(X_scaled)
+print("MSE:", mse(y, predictions))
+```
+
 ### Adding a New Model
 
 Create a new model class that inherits from `BaseModel`:
@@ -108,6 +141,26 @@ class RandomForestModel(BaseModel):
 
     def predict(self, X):
         return self.model.predict(X)
+```
+
+### Adding a New Preprocessor
+
+Create a new preprocessor class that inherits from `Preprocessor`:
+
+```python
+from ml_oop_pipeline.preprocessors.preprocessor import Preprocessor
+from sklearn.preprocessing import RobustScaler
+
+class RobustPreprocessor(Preprocessor):
+    def __init__(self):
+        self.scaler = RobustScaler()
+
+    def fit(self, X):
+        self.scaler.fit(X)
+        return self
+
+    def preprocess(self, X):
+        return self.scaler.transform(X)
 ```
 
 ## 📦 Dependencies
@@ -143,6 +196,12 @@ ml-oop-pipeline/
     │   ├── linear_regression_model.py
     │   └── decision_tree_model.py
     │
+    ├── preprocessors/               # Data preprocessing
+    │   ├── __init__.py
+    │   ├── preprocessor.py          # Abstract base preprocessor
+    │   ├── standard_scaler.py       # StandardScaler implementation
+    │   └── normalizer.py            # Normalizer implementation
+    │
     └── utils/                       # Utility functions
         ├── __init__.py
         └── metrics.py               # Evaluation metrics
@@ -152,15 +211,18 @@ ml-oop-pipeline/
 
 - ✅ Object-oriented design with abstract base classes
 - ✅ Easy model extensibility
+- ✅ Data preprocessing with StandardScaler and Normalizer
 - ✅ Clean separation of concerns
-- ✅ Standardized model interface
+- ✅ Standardized model and preprocessor interfaces
 - ✅ Reusable dataset loader
 - ✅ Modular metrics system
+- ✅ Polymorphism and inheritance throughout
 
 ## 🛣️ Roadmap
 
 Future enhancements planned:
-- [ ] Add data preprocessing capabilities
+- [x] Add data preprocessing capabilities (StandardScaler, Normalizer)
+- [ ] Add more preprocessors (RobustScaler, PCA)
 - [ ] Implement cross-validation
 - [ ] Add more evaluation metrics (R², MAE, RMSE)
 - [ ] Support for classification models
